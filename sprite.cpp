@@ -38,6 +38,7 @@ Sprite::Sprite(Graph image, int u, int v, int w, int h)
     this->v = v;
     this->width = w;
     this->height = h;
+    this->drawingMethod = Sprite::DrawingProcess::Rough;
 
     sprites.push_back(this);
 }
@@ -66,7 +67,7 @@ void Sprite::SetImage(int u, int v, int width, int height)
     this->height = height;
 }
 void Sprite::SetImage(Graph image, int u, int v, int width, int height)
-{
+{ 
     this->SetImage(image);
     this->SetImage(u, v, width, height);
 }
@@ -223,9 +224,12 @@ void Sprite::DisposeAll(bool isProtectOnly)
 
 int Sprite::findIndex(Sprite* spr)
 {
+    auto size = sprites.size();
+    if (size == 0) return -1;
+
     auto iter = std::find(sprites.begin(), sprites.end(), spr);
     size_t index = std::distance(sprites.begin(), iter);
-    if (index == sprites.size())
+    if (index == size)
     {
         return -1;
     }
@@ -236,7 +240,7 @@ void Sprite::garbageCollect()
     while (true)
     {
         int index = findIndex(nullptr);
-        if (index != -1) break;
+        if (index == -1) break;
         sprites.erase(sprites.begin() + index);
     }
 }
@@ -248,11 +252,12 @@ void Sprite::UpdateAll()
 {
     for (Sprite* spr : sprites)
     {
-        if (spr->isUsed)
+        if (spr != nullptr)
         {
             if (spr->updateMethod != nullptr) spr->updateMethod(spr);
         }
     }
+    garbageCollect();
 }
 
 
@@ -291,22 +296,21 @@ void Sprite::DrawingAll()
 
 
 
-void Sprite::DrawingProcess::Rough(const Sprite* hSpr, int hX, int hY)
+void Sprite::DrawingProcess::Rough(Sprite* hSpr, int hX, int hY)
 {
     Draw(hSpr, hX, hY, ROUGH_SCALE);
 }
-void Sprite::DrawingProcess::Twice(const Sprite* hSpr, int hX, int hY)
+void Sprite::DrawingProcess::Twice(Sprite* hSpr, int hX, int hY)
 {
     Draw(hSpr, hX, hY, 2);
 }
-void Sprite::DrawingProcess::DotByDot(const Sprite* hSpr, int hX, int hY)
+void Sprite::DrawingProcess::DotByDot(Sprite* hSpr, int hX, int hY)
 {
     Draw(hSpr, hX, hY, 1);
 }
-void Sprite::DrawingProcess::Draw(const Sprite* hSpr, int x, int y, int scale)
+void Sprite::DrawingProcess::Draw(Sprite* hSpr, int x, int y, int scale)
 {
-    Graph graph = hSpr->image;
-    int image = DxLib::DerivationGraph(hSpr->u, hSpr->v, hSpr->width, hSpr->height, graph.getHandler());
+    int image = DxLib::DerivationGraph(hSpr->u, hSpr->v, hSpr->width, hSpr->height, hSpr->image.getHandler());
 
     if (hSpr->rotationRad == 0)
     {

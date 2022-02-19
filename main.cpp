@@ -1,4 +1,5 @@
 #include "main.h"
+#include <iostream>
 
 #define LOOP    (DxLib::ProcessMessage() != -1 && (!CanRestartProgram))
 
@@ -304,6 +305,7 @@ namespace game
             //lua_pcall(Lua, 1, 1, 0);
             //std::string str = luaL_checkstring(Lua, -1);
             //printf(str.data());
+            Spr->SetXY(20,20);
         }
 
 

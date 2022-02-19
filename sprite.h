@@ -92,10 +92,10 @@ public:
     class DrawingProcess
     {
     public:
-        static void Rough(const Sprite* hSpr, int hX, int hY);
-        static void Twice(const Sprite* hSpr, int hX, int hY);
-        static void DotByDot(const Sprite* hSpr, int hX, int hY);
-        static void Draw(const Sprite* hSpr, int x, int y, int scale);
+        static void Rough(Sprite* hSpr, int hX, int hY);
+        static void Twice(Sprite* hSpr, int hX, int hY);
+        static void DotByDot(Sprite* hSpr, int hX, int hY);
+        static void Draw(Sprite* hSpr, int x, int y, int scale);
     };
 
 
