@@ -11,7 +11,11 @@ namespace gameUtils
 	public:
 		Graph(int handler);
 		int getHandler();
+
+		bool operator ==(Graph r);
+
 		static Graph LoadGraph(const char* path);
+		static const Graph NONE ;
 	};
 
 

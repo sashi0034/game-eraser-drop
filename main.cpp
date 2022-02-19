@@ -76,7 +76,7 @@ namespace game
         if (CanRestartProgram)
         {// 再起動
             CanRestartProgram = false;
-            Sprite::AllClear();
+            Sprite::DisposeAll();
             printfDx("再起動完了\n");
             goto restart;
         }
@@ -108,10 +108,10 @@ namespace game
 
     void LoopBasicUpdate()
     {
-        Sprite::AllUpdate();
+        Sprite::UpdateAll();
         DxLib::SetDrawScreen(DX_SCREEN_BACK);
         DxLib::ClearDrawScreen();
-        Sprite::AllDrawing();
+        Sprite::DrawingAll();
         DxLib::ScreenFlip();
     }
 }
@@ -123,38 +123,38 @@ namespace game
     {
         void DefineSpriteFunc()
         {
-            auto fnXy = [](lua_State* lua) {
-                int sp = (int)luaL_checknumber(lua, 1);
-                double x = luaL_checknumber(lua, 2);
-                double y = luaL_checknumber(lua, 3);
-                Sprite::Offset(sp, x, y);
-                return 0;
-            };
+            //auto fnXy = [](lua_State* lua) {
+            //    int sp = (int)luaL_checknumber(lua, 1);
+            //    double x = luaL_checknumber(lua, 2);
+            //    double y = luaL_checknumber(lua, 3);
+            //    Sprite::Offset(sp, x, y);
+            //    return 0;
+            //};
 
-            auto fnZ = [](lua_State* lua) {
-                int sp = (int)luaL_checknumber(lua, 1);
-                short z = (short)luaL_checknumber(lua, 2);
-                Sprite::Offset(sp, z);
-                return 0;
-            };
+            //auto fnZ = [](lua_State* lua) {
+            //    int sp = (int)luaL_checknumber(lua, 1);
+            //    short z = (short)luaL_checknumber(lua, 2);
+            //    Sprite::Offset(sp, z);
+            //    return 0;
+            //};
 
-            auto fnUv = [](lua_State* lua) {
-                int sp = (int)luaL_checknumber(lua, 1);
-                int u = (int)luaL_checknumber(lua, 2);
-                int v = (int)luaL_checknumber(lua, 3);
-                Sprite::Image(sp, u, v);
-                return 0;
-            };
+            //auto fnUv = [](lua_State* lua) {
+            //    int sp = (int)luaL_checknumber(lua, 1);
+            //    int u = (int)luaL_checknumber(lua, 2);
+            //    int v = (int)luaL_checknumber(lua, 3);
+            //    Sprite::Image(sp, u, v);
+            //    return 0;
+            //};
 
 
-            lua_pushcfunction(Lua, fnXy);
-            lua_setglobal(Lua, "SpriteXY");
+            //lua_pushcfunction(Lua, fnXy);
+            //lua_setglobal(Lua, "SpriteXY");
 
-            lua_pushcfunction(Lua, fnZ);
-            lua_setglobal(Lua, "SpriteZ");
+            //lua_pushcfunction(Lua, fnZ);
+            //lua_setglobal(Lua, "SpriteZ");
 
-            lua_pushcfunction(Lua, fnUv);
-            lua_setglobal(Lua, "SpriteUV");
+            //lua_pushcfunction(Lua, fnUv);
+            //lua_setglobal(Lua, "SpriteUV");
 
         }
     }
@@ -164,10 +164,10 @@ namespace game
     {
         LuaDebugManager::LuaDebugManager()
         {
-            Sp = Sprite::Make();
-            Sprite::Belong(Sp, this);
-            Sprite::Update(Sp, LuaDebugManager::CallUpdate);
-            Sprite::Destructer(Sp, LuaDebugManager::CallDestructer);
+            Spr = new Sprite();
+            Spr->SetBelong(this);
+            Spr->SetUpdateMethod(LuaDebugManager::CallUpdate);
+            Spr->SetDestructorMethod(LuaDebugManager::Calldestructor);
 
         }
 
@@ -214,13 +214,13 @@ namespace game
         }
 
 
-        void LuaDebugManager::CallUpdate(int hSp)
+        void LuaDebugManager::CallUpdate(Sprite* hSpr)
         {
-            std::any_cast<LuaDebugManager*>(Sprite::GetBelong(hSp))->Update();
+            std::any_cast<LuaDebugManager*>(hSpr->GetBelong())->Update();
         }
-        void LuaDebugManager::CallDestructer(int hSp)
+        void LuaDebugManager::Calldestructor(Sprite* hSpr)
         {
-            delete std::any_cast<LuaDebugManager*>(Sprite::GetBelong(hSp));
+            delete std::any_cast<LuaDebugManager*>(hSpr->GetBelong());
         }
 
 
@@ -284,34 +284,36 @@ namespace game
         // テスト
         Test::Test()
         {
-            Sp = Sprite::Make();
-            Sprite::Belong(Sp, this);
-            Sprite::Update(Sp, Test::CallUpdate);
-            Sprite::Destructer(Sp, Test::CallDestructer);
+            Spr = new Sprite();
+            Spr->SetBelong(this);
+            Spr->SetUpdateMethod(Test::CallUpdate);
+            Spr->SetDestructorMethod(Test::Calldestructor);
+
             Test::GetIn = this;
 
-            Test::OtherSp = Sprite::Make(Img->Test, 0, 0, 128, 64);
-            Sprite::Offset(Test::OtherSp, 100, 50, -200);
+            OtherSp = new Sprite(Img->Test, 0, 0, 128, 64);
+            OtherSp->SetXY(100, 50);
+            OtherSp->SetZ(-200);
         }
 
         void Test::Update()
         {
-            Sprite::Image(Sp, Img->Chicken, 0, 0, 32, 32);
-            lua_getglobal(Lua, "LuacallTest");
-            lua_pushnumber(Lua, Sp);
-            lua_pcall(Lua, 1, 1, 0);
-            std::string str = luaL_checkstring(Lua, -1);
-            printf(str.data());
+            Spr->SetImage(Img->Chicken, 0, 0, 32, 32);
+            //lua_getglobal(Lua, "LuacallTest");
+            //lua_pushnumber(Lua, Sp);
+            //lua_pcall(Lua, 1, 1, 0);
+            //std::string str = luaL_checkstring(Lua, -1);
+            //printf(str.data());
         }
 
 
-        void Test::CallUpdate(int hSp)
+        void Test::CallUpdate(Sprite* hSpr)
         {
-            std::any_cast<Test*>(Sprite::GetBelong(hSp))->Update();
+            std::any_cast<Test*>(hSpr->GetBelong())->Update();
         }
-        void Test::CallDestructer(int hSp)
+        void Test::Calldestructor(Sprite* hSpr)
         {
-            delete std::any_cast<Test*>(Sprite::GetBelong(hSp));
+            delete std::any_cast<Test*>(hSpr->GetBelong());
         }
 
     }
@@ -330,21 +332,21 @@ namespace game
         BackGround::BackGround()
         {
             Image = DxLib::MakeScreen(ROUGH_WIDTH, ROUGH_HEIGHT, TRUE);
-            Sp = Sprite::Make(Image, 0, 0, ROUGH_WIDTH, ROUGH_HEIGHT);
+            Spr = new Sprite(Graph(Image), 0, 0, ROUGH_WIDTH, ROUGH_HEIGHT);
             DxLib::SetDrawScreen(Image);
             
             for (int x = 0; x < ROUGH_WIDTH; x+=32)
             {
                 for (int y = 0; y < ROUGH_HEIGHT; y+=32)
                 {
-                    DxLib::DrawGraph(x, y, Img->Tile32, TRUE);
+                    DxLib::DrawGraph(x, y, Img->Tile32.getHandler(), TRUE);
                 }
             }
 
-            Sprite::Offset(Sp, int(0), int(0), 4000);
-            Sprite::Belong(Sp, this);
-            Sprite::Update(Sp, BackGround::CallUpdate);
-            Sprite::Destructer(Sp, BackGround::CallDestructer);
+            Spr->SetZ(4000);
+            Spr->SetBelong(this);
+            Spr->SetUpdateMethod(BackGround::CallUpdate);
+            Spr->SetDestructorMethod(BackGround::Calldestructor);
             BackGround::GetIn = this;
 
         }
@@ -353,13 +355,14 @@ namespace game
         }
 
 
-        void BackGround::CallUpdate(int hSp)
+
+        void BackGround::CallUpdate(Sprite* hSpr)
         {
-            std::any_cast<BackGround*>(Sprite::GetBelong(hSp))->Update();
+            std::any_cast<BackGround*>(hSpr->GetBelong())->Update();
         }
-        void BackGround::CallDestructer(int hSp)
+        void BackGround::Calldestructor(Sprite* hSpr)
         {
-            delete std::any_cast<BackGround*>(Sprite::GetBelong(hSp));
+            delete std::any_cast<BackGround*>(hSpr->GetBelong());
         }
 
     }
@@ -379,7 +382,7 @@ namespace game
             Sprite::Offset(Sp, X, Y);
             Sprite::Belong(Sp, this);
             Sprite::Update(Sp, Templa::CallUpdate);
-            Sprite::Destructer(Sp, Templa::CallDestructer);
+            Sprite::destructor(Sp, Templa::Calldestructor);
         }
 
         void Templa::Update()
@@ -393,7 +396,7 @@ namespace game
         {
             std::any_cast<Templa*>(Sprite::GetBelong(hSp))->Update();
         }
-        void Templa::CallDestructer(int hSp)
+        void Templa::Calldestructor(int hSp)
         {
             delete std::any_cast<Templa*>(Sprite::GetBelong(hSp));
         }
@@ -410,7 +413,7 @@ namespace game
             Sprite::Belong(Sp, this);
             Sprite::Update(Sp, Templa::CallUpdate);
             Sprite::Drawing(Sp, Templa::CallDrawing);
-            Sprite::Destructer(Sp, Templa::CallDestructer);
+            Sprite::destructor(Sp, Templa::Calldestructor);
         }
 
         void Templa::Update()
@@ -432,7 +435,7 @@ namespace game
         {
             std::any_cast<Templa*>(Sprite::GetBelong(hSp))->Drawing(hX, hY);
         }
-        void Templa::CallDestructer(int hSp)
+        void Templa::Calldestructor(int hSp)
         {
             delete std::any_cast<Templa*>(Sprite::GetBelong(hSp));
         }
@@ -450,7 +453,7 @@ namespace game
             Sprite::Offset(Sp, X, Y);
             Sprite::Belong(Sp, this);
             Sprite::Update(Sp, Templa::CallUpdate);
-            Sprite::Destructer(Sp, Templa::CallDestructer);
+            Sprite::destructor(Sp, Templa::Calldestructor);
         }
 
         void Templa::Update()
@@ -464,7 +467,7 @@ namespace game
         {
             std::any_cast<Templa*>(Sprite::GetBelong(hSp))->Update();
         }
-        void Templa::CallDestructer(int hSp)
+        void Templa::Calldestructor(int hSp)
         {
             delete std::any_cast<Templa*>(Sprite::GetBelong(hSp));
         }

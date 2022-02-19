@@ -10,6 +10,7 @@
 #include <math.h>
 
 #include "sprite.h"
+#include "game_utils.h"
 
 #define DEBUG
 
@@ -19,7 +20,7 @@
 
 
 
-
+using namespace gameUtils;
 
 
 
@@ -54,9 +55,9 @@ namespace game
         class Image
         {
         public:
-            int Test = LoadGraph(R"(.\asset\image\cloud_128x64.png)");
-            int Chicken = LoadGraph(R"(.\asset\image\chicken_32x32.png)");
-            int Tile32 = LoadGraph(R"(.\asset\image\magma_tile_black_32x32.png)");
+            Graph Test = Graph::LoadGraph(R"(.\asset\image\cloud_128x64.png)");
+            Graph Chicken = Graph::LoadGraph(R"(.\asset\image\chicken_32x32.png)");
+            Graph Tile32 = Graph::LoadGraph(R"(.\asset\image\magma_tile_black_32x32.png)");
 
 #if 0
             int Templa = LoadGraph(R"(.png)");
@@ -82,13 +83,13 @@ namespace game
         public:
             LuaDebugManager();
 
-            int Sp;
+            Sprite* Spr;
             int Count = 0;
 
             void Update();
 
-            static void CallUpdate(int hSp);
-            static void CallDestructer(int hSp);
+            static void CallUpdate(Sprite* hSpr);
+            static void Calldestructor(Sprite* hSpr);
         };
 
     }
@@ -137,13 +138,14 @@ namespace game{
         public:
             static Test* GetIn;
 
-            int Sp, OtherSp;
+            Sprite* Spr;
+            Sprite* OtherSp;
 
             Test();
             void Update();
 
-            static void CallUpdate(int hSp);
-            static void CallDestructer(int hSp);
+            static void CallUpdate(Sprite* hSpr);
+            static void Calldestructor(Sprite* hSpr);
         };
 
 
@@ -157,14 +159,14 @@ namespace game{
         public:
             static BackGround* GetIn;
 
-            int Sp;
+            Sprite* Spr;
             int Image;
 
             BackGround();
             void Update();
 
-            static void CallUpdate(int hSp);
-            static void CallDestructer(int hSp);
+            static void CallUpdate(Sprite* hSpr);
+            static void Calldestructor(Sprite* hSpr);
         };
 
 
@@ -176,7 +178,7 @@ namespace game{
         class Templa
         {
         public:
-            int Sp;
+            Sprite* Spr;
             int Image;
             double X = 0, Y = 0;
             int Count = 0;
@@ -184,31 +186,31 @@ namespace game{
             Templa();
             void Update();
 
-            static void CallUpdate(int hSp);
-            static void CallDestructer(int hSp);
+            static void CallUpdate(Sprite* hSpr);
+            static void Calldestructor(Sprite* hSpr);
         };
 
         // テンプレ(手動描画)
         class Templa
         {
         public:
-            int Sp;
+            Sprite* Spr;
             int Count = 0;
 
             Templa();
             void Update();
             void Drawing(int hX, int hY);
 
-            static void CallUpdate(int hSp);
+            static void CallUpdate(Sprite* hSpr);
             static void CallDrawing(int hSp, int hX, int hY);
-            static void CallDestructer(int hSp);
+            static void Calldestructor(Sprite* hSpr);
         };
 
         // コライダー付きテンプレ
         class Templa : public hit::Collider
         {
         public:
-            int Sp;
+            Sprite* Spr;
             int Image;
             // X, Yはいらない
             int Count = 0;
@@ -216,8 +218,8 @@ namespace game{
             Templa();
             void Update();
 
-            static void CallUpdate(int hSp);
-            static void CallDestructer(int hSp);
+            static void CallUpdate(Sprite* hSpr);
+            static void Calldestructor(Sprite* hSpr);
         };
 
 

@@ -163,10 +163,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="game_utils.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="sprite.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="game_utils.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="sprite.h" />
   </ItemGroup>
