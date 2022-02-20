@@ -33,7 +33,7 @@ Test = {
         self.y = self.y + 1.5
         self.time = self.time+1
 
-        self.spr:SetXY(self.spr, self.x, self.y)
+        self.spr:SetXY(self.x, self.y)
         
         --return "hogehoge" .. self.time
         return "x = ".. self.x .. ",y = " .. self.y .."\n"
