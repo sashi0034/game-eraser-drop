@@ -510,25 +510,6 @@ namespace game
 
 
 
-namespace useful
-{
-    Random::Random() : engine(device()), distribution(0, INT_MAX - 1)
-    {
-    }
-    Random::Random(int seed) : engine(seed), distribution(0, INT_MAX - 1)
-    {
-    }
-    int Random::Get(int max)
-    {
-        return distribution(engine) % max;
-    }
-    int Random::Get(int min, int max)
-    {
-        return min + (distribution(engine) % (max - min));
-    }
-}
-
-
 
 
 

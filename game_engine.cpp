@@ -1,5 +1,4 @@
 #include "game_engine.h"
-#include "game_utils.h"
 
 namespace gameEngine{
 	Sprite* Actor::GetSpr()
@@ -114,7 +113,7 @@ namespace gameEngine
 	void CollideActor::destructor()
 	{
 		gameUtils::useful::Remove<CollideActor*>(colliders, this);
-		CollideActor::destructor();
+		Actor::destructor();
 	}
 
 
@@ -160,7 +159,7 @@ namespace gameEngine
 		int retI = -1;
 
 		auto cols = CollideActor::GetColliders();
-		for (int i = 0; i < cols.size(); i++)
+		for (int i = 0; i < cols.size(); ++i)
 		{
 			auto col = cols[i];
 			if ((col->GetColbit() & colbit) != 0)

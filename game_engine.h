@@ -1,5 +1,6 @@
 #pragma once
 #include "sprite.h"
+#include "game_utils.h"
 
 namespace gameEngine
 {
@@ -34,6 +35,33 @@ namespace gameEngine
 	};
 
 
+
+	namespace collider
+	{
+		enum class EType
+		{
+			RECTANGLE = 0,
+		};
+
+		class Shape
+		{
+		public:
+			virtual inline EType Type() = 0;
+		};
+
+		class Rectangle : public Shape
+		{
+		public:
+			EType Type() override;
+			int ColX;
+			int ColY;
+			int ColWidth;
+			int ColHeight;
+			Rectangle(int colX, int colY, int colWidth, int colHeight);
+		};
+	}
+
+
 	class CollideActor : public Actor
 	{
 	private:
@@ -61,32 +89,6 @@ namespace gameEngine
 	};
 
 	
-
-
-	namespace collider
-	{
-		enum class EType
-		{
-			RECTANGLE=0,
-		};
-
-		class Shape
-		{
-		public:
-			virtual inline EType Type() = 0;
-		};
-
-		class Rectangle : public Shape
-		{
-		public:
-			EType Type() override;
-			int ColX;
-			int ColY;
-			int ColWidth;
-			int ColHeight;
-			Rectangle(int colX, int colY, int colWidth, int colHeight);
-		};
-	}
 
 	namespace hit
 	{

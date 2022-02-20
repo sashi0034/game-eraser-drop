@@ -28,23 +28,6 @@ using namespace gameUtils;
 
 
 
-namespace useful
-{
-    class Random
-    {
-        std::random_device device;
-        std::default_random_engine engine;
-        std::uniform_int_distribution<int> distribution;
-
-    public:
-        Random(void);
-        Random(int seed);
-        int Get(int max);
-        int Get(int min, int max);
-    };
-}
-
-
 
 
 
