@@ -127,7 +127,11 @@ namespace game{
 
             Sprite* OtherSp;
 
+            sol::table SolState;
+
             Test();
+
+            
 
         protected:
             void update() override;

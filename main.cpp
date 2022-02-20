@@ -274,14 +274,18 @@ namespace game
             OtherSp->SetXY(100, 50);
             OtherSp->SetZ(-200);
 
+            SolState = lua::Sol["Test"];
+            std::string res = lua::Sol["Test"]["new"](SolState, mSpr);
+            std::cout << res;
+            
         }
 
         void Test::update()
         {
+            std::string res = lua::Sol["Test"]["Update"](SolState);
+            std::cout << res;
 
-            std::string res = lua::Sol["LuacallTest"](mSpr);
-
-            std::cout << res << "\n";
+            
             Actor::update();
         }
     }
