@@ -279,45 +279,31 @@ namespace game
     // Test
     namespace main
     {
-        Test* Test::GetIn = nullptr;
+        Test* Test::Sole = nullptr;
 
 
         // ƒeƒXƒg
-        Test::Test()
+        Test::Test() : Actor()
         {
-            Spr = new Sprite();
-            Spr->SetBelong(this);
-            Spr->SetUpdateMethod(Test::CallUpdate);
-            Spr->SetDestructorMethod(Test::Calldestructor);
-
-            Test::GetIn = this;
+            Test::Sole = this;
 
             OtherSp = new Sprite(Img->Test, 0, 0, 128, 64);
             OtherSp->SetXY(100, 50);
             OtherSp->SetZ(-200);
         }
 
-        void Test::Update()
+        void Test::update()
         {
-            Spr->SetImage(Img->Chicken, 0, 0, 32, 32);
+            mSpr->SetImage(Img->Chicken, 0, 0, 32, 32);
             //lua_getglobal(Lua, "LuacallTest");
             //lua_pushnumber(Lua, Sp);
             //lua_pcall(Lua, 1, 1, 0);
             //std::string str = luaL_checkstring(Lua, -1);
             //printf(str.data());
-            Spr->SetXY(20,20);
+            mSpr->SetXY(20,20);
+            std::cout << mTime << "\n";
+            Actor::update();
         }
-
-
-        void Test::CallUpdate(Sprite* hSpr)
-        {
-            std::any_cast<Test*>(hSpr->GetBelong())->Update();
-        }
-        void Test::Calldestructor(Sprite* hSpr)
-        {
-            delete std::any_cast<Test*>(hSpr->GetBelong());
-        }
-
     }
 
 
@@ -327,14 +313,14 @@ namespace game
     // BackGround
     namespace main
     {
-        BackGround* BackGround::GetIn = nullptr;
+        BackGround* BackGround::Sole = nullptr;
 
 
         // ”wŒi
-        BackGround::BackGround()
+        BackGround::BackGround() : Actor()
         {
             Image = DxLib::MakeScreen(ROUGH_WIDTH, ROUGH_HEIGHT, TRUE);
-            Spr = new Sprite(Graph(Image), 0, 0, ROUGH_WIDTH, ROUGH_HEIGHT);
+            mSpr->SetImage(Graph(Image), 0, 0, ROUGH_WIDTH, ROUGH_HEIGHT);
             DxLib::SetDrawScreen(Image);
             
             for (int x = 0; x < ROUGH_WIDTH; x+=32)
@@ -345,26 +331,13 @@ namespace game
                 }
             }
 
-            Spr->SetZ(4000);
-            Spr->SetBelong(this);
-            Spr->SetUpdateMethod(BackGround::CallUpdate);
-            Spr->SetDestructorMethod(BackGround::Calldestructor);
-            BackGround::GetIn = this;
+            mSpr->SetZ(4000);
+            BackGround::Sole = this;
 
         }
-        void BackGround::Update()
+        void BackGround::update()
         {
-        }
-
-
-
-        void BackGround::CallUpdate(Sprite* hSpr)
-        {
-            std::any_cast<BackGround*>(hSpr->GetBelong())->Update();
-        }
-        void BackGround::Calldestructor(Sprite* hSpr)
-        {
-            delete std::any_cast<BackGround*>(hSpr->GetBelong());
+            Actor::update();
         }
 
     }

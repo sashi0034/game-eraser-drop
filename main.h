@@ -11,6 +11,7 @@
 
 #include "sprite.h"
 #include "game_utils.h"
+#include "game_engine.h"
 
 #define DEBUG
 
@@ -21,7 +22,7 @@
 
 
 using namespace gameUtils;
-
+using namespace gameEngine;
 
 
 
@@ -116,19 +117,17 @@ namespace game{
 
 
 
-        class Test
+        class Test : public Actor
         {
         public:
-            static Test* GetIn;
+            static Test* Sole;
 
-            Sprite* Spr;
             Sprite* OtherSp;
 
             Test();
-            void Update();
 
-            static void CallUpdate(Sprite* hSpr);
-            static void Calldestructor(Sprite* hSpr);
+        protected:
+            void update() override;
         };
 
 
@@ -137,19 +136,15 @@ namespace game{
 
 
 
-        class BackGround
+        class BackGround : public Actor
         {
         public:
-            static BackGround* GetIn;
+            static BackGround* Sole;
 
-            Sprite* Spr;
             int Image;
-
             BackGround();
-            void Update();
-
-            static void CallUpdate(Sprite* hSpr);
-            static void Calldestructor(Sprite* hSpr);
+        protected:
+            void update() override;
         };
 
 
