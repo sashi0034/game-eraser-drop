@@ -56,18 +56,8 @@ namespace game
 
 
     restart:
-        // Lua“Ç‚İ‚İ
-        Lua = luaL_newstate();
-        luaL_openlibs(Lua);
-        if (luaL_dofile(Lua, "resorce.lua"))
-        {
-            OutputDebugString("Lua‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½");
-            return -1;
-        }
-        lua::DefineSpriteFunc();
-        new lua::LuaDebugManager();
-
-
+        
+        if (lua::SolStart()==-1) return -1;
 
         printf("game is start\n");
 
@@ -86,7 +76,6 @@ namespace game
 
         Sprite::End();
         DxLib::DxLib_End();        // ‚c‚wƒ‰ƒCƒuƒ‰ƒŠg—p‚ÌI—¹ˆ—
-
 
 
         return 0;
@@ -122,41 +111,32 @@ namespace game
 {
     namespace lua
     {
+        int SolStart()
+        {
+            // Lua“Ç‚İ‚İ
+            /*Lua = luaL_newstate();
+            luaL_openlibs(Lua);
+            if (luaL_dofile(Lua, "resorce.lua"))
+            {
+                OutputDebugString("Lua‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½");
+                return -1;
+            }
+            lua::DefineSpriteFunc();*/
+            Sol.open_libraries(sol::lib::base, sol::lib::package);
+            DefineSpriteFunc();
+
+            new lua::LuaDebugManager();
+            return 0;
+        }
         void DefineSpriteFunc()
         {
-            //auto fnXy = [](lua_State* lua) {
-            //    int sp = (int)luaL_checknumber(lua, 1);
-            //    double x = luaL_checknumber(lua, 2);
-            //    double y = luaL_checknumber(lua, 3);
-            //    Sprite::Offset(sp, x, y);
-            //    return 0;
-            //};
 
-            //auto fnZ = [](lua_State* lua) {
-            //    int sp = (int)luaL_checknumber(lua, 1);
-            //    short z = (short)luaL_checknumber(lua, 2);
-            //    Sprite::Offset(sp, z);
-            //    return 0;
-            //};
+            lua::Sol.new_usertype<Sprite>(
+                "Sprite",
+                sol::constructors<Sprite()>(),
+                "SetXY", &Sprite::SetXY);
 
-            //auto fnUv = [](lua_State* lua) {
-            //    int sp = (int)luaL_checknumber(lua, 1);
-            //    int u = (int)luaL_checknumber(lua, 2);
-            //    int v = (int)luaL_checknumber(lua, 3);
-            //    Sprite::Image(sp, u, v);
-            //    return 0;
-            //};
-
-
-            //lua_pushcfunction(Lua, fnXy);
-            //lua_setglobal(Lua, "SpriteXY");
-
-            //lua_pushcfunction(Lua, fnZ);
-            //lua_setglobal(Lua, "SpriteZ");
-
-            //lua_pushcfunction(Lua, fnUv);
-            //lua_setglobal(Lua, "SpriteUV");
-
+            Sol.script_file("test.lua");
         }
     }
 
@@ -286,22 +266,22 @@ namespace game
         Test::Test() : Actor()
         {
             Test::Sole = this;
+            mSpr->SetImage(Img->Chicken, 0, 0, 32, 32);
+            mSpr->SetXY(20, 20);
+            mSpr->SetZ(-20);
 
             OtherSp = new Sprite(Img->Test, 0, 0, 128, 64);
             OtherSp->SetXY(100, 50);
             OtherSp->SetZ(-200);
+
         }
 
         void Test::update()
         {
-            mSpr->SetImage(Img->Chicken, 0, 0, 32, 32);
-            //lua_getglobal(Lua, "LuacallTest");
-            //lua_pushnumber(Lua, Sp);
-            //lua_pcall(Lua, 1, 1, 0);
-            //std::string str = luaL_checkstring(Lua, -1);
-            //printf(str.data());
-            mSpr->SetXY(20,20);
-            std::cout << mTime << "\n";
+
+            std::string res = lua::Sol["LuacallTest"](mSpr);
+
+            std::cout << res << "\n";
             Actor::update();
         }
     }

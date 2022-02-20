@@ -52,5 +52,8 @@
     <None Include="resorce.lua">
       <Filter>リソース ファイル</Filter>
     </None>
+    <None Include="test.lua">
+      <Filter>リソース ファイル</Filter>
+    </None>
   </ItemGroup>
 </Project>

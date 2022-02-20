@@ -58,6 +58,9 @@ namespace game
 
     namespace lua
     {
+        sol::state Sol;
+
+        int SolStart();
         void DefineSpriteFunc();
         
         class LuaDebugManager
@@ -95,7 +98,6 @@ namespace game{
     bool CanRestartProgram = false;
 
     resorce::Image* Img;
-    lua_State* Lua;
 
 
     int Process();

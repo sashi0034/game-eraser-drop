@@ -178,6 +178,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="resorce.lua" />
+    <None Include="test.lua" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
