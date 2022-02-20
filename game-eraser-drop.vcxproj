@@ -88,7 +88,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\d_files\progyams\DxLibDotNet\DxLib_VC\プロジェクトに追加すべきファイル_VC用;D:\d_files\progyams\lua-5.4.2_Win32_dllw6_lib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\d_files\progyams\DxLibDotNet\DxLib_VC\プロジェクトに追加すべきファイル_VC用;D:\d_files\progyams\sol2\include;D:\d_files\progyams\lua-5.4.2_Win32_dllw6_lib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -128,7 +128,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\d_files\progyams\DxLibDotNet\DxLib_VC\プロジェクトに追加すべきファイル_VC用;D:\d_files\progyams\lua-5.4.2_Win32_dllw6_lib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\d_files\progyams\DxLibDotNet\DxLib_VC\プロジェクトに追加すべきファイル_VC用;D:\d_files\progyams\sol2\include;D:\d_files\progyams\lua-5.4.2_Win32_dllw6_lib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -172,6 +172,8 @@
     <ClInclude Include="game_engine.h" />
     <ClInclude Include="game_utils.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="sol.hpp" />
     <ClInclude Include="sprite.h" />
   </ItemGroup>
   <ItemGroup>

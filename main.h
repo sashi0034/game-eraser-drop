@@ -9,6 +9,7 @@
 #include <map>
 #include <math.h>
 
+#include "sol.hpp" // 3.5.0
 #include "sprite.h"
 #include "game_utils.h"
 #include "game_engine.h"
