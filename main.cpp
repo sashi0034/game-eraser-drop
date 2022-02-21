@@ -1,4 +1,5 @@
 #include "main.h"
+#include <iostream>
 
 #define LOOP    (DxLib::ProcessMessage() != -1 && (!CanRestartProgram))
 
@@ -55,18 +56,8 @@ namespace game
 
 
     restart:
-        // Luaì«Ç›çûÇ›
-        Lua = luaL_newstate();
-        luaL_openlibs(Lua);
-        if (luaL_dofile(Lua, "resorce.lua"))
-        {
-            OutputDebugString("LuaÇÃì«Ç›çûÇ›Ç…é∏îsÇµÇ‹ÇµÇΩ");
-            return -1;
-        }
-        lua::DefineSpriteFunc();
-        new lua::LuaDebugManager();
-
-
+        
+        if (lua::SolStart()==-1) return -1;
 
         printf("game is start\n");
 
@@ -76,7 +67,7 @@ namespace game
         if (CanRestartProgram)
         {// çƒãNìÆ
             CanRestartProgram = false;
-            Sprite::AllClear();
+            Sprite::DisposeAll();
             printfDx("çƒãNìÆäÆóπ\n");
             goto restart;
         }
@@ -85,7 +76,6 @@ namespace game
 
         Sprite::End();
         DxLib::DxLib_End();        // ÇcÇwÉâÉCÉuÉâÉäégópÇÃèIóπèàóù
-
 
 
         return 0;
@@ -108,10 +98,10 @@ namespace game
 
     void LoopBasicUpdate()
     {
-        Sprite::AllUpdate();
+        Sprite::UpdateAll();
         DxLib::SetDrawScreen(DX_SCREEN_BACK);
         DxLib::ClearDrawScreen();
-        Sprite::AllDrawing();
+        Sprite::DrawingAll();
         DxLib::ScreenFlip();
     }
 }
@@ -121,41 +111,32 @@ namespace game
 {
     namespace lua
     {
+        int SolStart()
+        {
+            // Luaì«Ç›çûÇ›
+            /*Lua = luaL_newstate();
+            luaL_openlibs(Lua);
+            if (luaL_dofile(Lua, "resorce.lua"))
+            {
+                OutputDebugString("LuaÇÃì«Ç›çûÇ›Ç…é∏îsÇµÇ‹ÇµÇΩ");
+                return -1;
+            }
+            lua::DefineSpriteFunc();*/
+            Sol.open_libraries(sol::lib::base, sol::lib::package);
+            DefineSpriteFunc();
+
+            new lua::LuaDebugManager();
+            return 0;
+        }
         void DefineSpriteFunc()
         {
-            auto fnXy = [](lua_State* lua) {
-                int sp = (int)luaL_checknumber(lua, 1);
-                double x = luaL_checknumber(lua, 2);
-                double y = luaL_checknumber(lua, 3);
-                Sprite::Offset(sp, x, y);
-                return 0;
-            };
 
-            auto fnZ = [](lua_State* lua) {
-                int sp = (int)luaL_checknumber(lua, 1);
-                short z = (short)luaL_checknumber(lua, 2);
-                Sprite::Offset(sp, z);
-                return 0;
-            };
+            lua::Sol.new_usertype<Sprite>(
+                "Sprite",
+                sol::constructors<Sprite()>(),
+                "SetXY", &Sprite::SetXY);
 
-            auto fnUv = [](lua_State* lua) {
-                int sp = (int)luaL_checknumber(lua, 1);
-                int u = (int)luaL_checknumber(lua, 2);
-                int v = (int)luaL_checknumber(lua, 3);
-                Sprite::Image(sp, u, v);
-                return 0;
-            };
-
-
-            lua_pushcfunction(Lua, fnXy);
-            lua_setglobal(Lua, "SpriteXY");
-
-            lua_pushcfunction(Lua, fnZ);
-            lua_setglobal(Lua, "SpriteZ");
-
-            lua_pushcfunction(Lua, fnUv);
-            lua_setglobal(Lua, "SpriteUV");
-
+            Sol.script_file("test.lua");
         }
     }
 
@@ -164,10 +145,10 @@ namespace game
     {
         LuaDebugManager::LuaDebugManager()
         {
-            Sp = Sprite::Make();
-            Sprite::Belong(Sp, this);
-            Sprite::Update(Sp, LuaDebugManager::CallUpdate);
-            Sprite::Destructer(Sp, LuaDebugManager::CallDestructer);
+            Spr = new Sprite();
+            Spr->SetBelong(this);
+            Spr->SetUpdateMethod(LuaDebugManager::CallUpdate);
+            Spr->SetDestructorMethod(LuaDebugManager::Calldestructor);
 
         }
 
@@ -214,13 +195,13 @@ namespace game
         }
 
 
-        void LuaDebugManager::CallUpdate(int hSp)
+        void LuaDebugManager::CallUpdate(Sprite* hSpr)
         {
-            std::any_cast<LuaDebugManager*>(Sprite::GetBelong(hSp))->Update();
+            std::any_cast<LuaDebugManager*>(hSpr->GetBelong())->Update();
         }
-        void LuaDebugManager::CallDestructer(int hSp)
+        void LuaDebugManager::Calldestructor(Sprite* hSpr)
         {
-            delete std::any_cast<LuaDebugManager*>(Sprite::GetBelong(hSp));
+            delete std::any_cast<LuaDebugManager*>(hSpr->GetBelong());
         }
 
 
@@ -278,42 +259,35 @@ namespace game
     // Test
     namespace main
     {
-        Test* Test::GetIn = nullptr;
+        Test* Test::Sole = nullptr;
 
 
         // ÉeÉXÉg
-        Test::Test()
+        Test::Test() : Actor()
         {
-            Sp = Sprite::Make();
-            Sprite::Belong(Sp, this);
-            Sprite::Update(Sp, Test::CallUpdate);
-            Sprite::Destructer(Sp, Test::CallDestructer);
-            Test::GetIn = this;
+            Test::Sole = this;
+            mSpr->SetImage(Img->Chicken, 0, 0, 32, 32);
+            mSpr->SetXY(20, 20);
+            mSpr->SetZ(-20);
 
-            Test::OtherSp = Sprite::Make(Img->Test, 0, 0, 128, 64);
-            Sprite::Offset(Test::OtherSp, 100, 50, -200);
+            OtherSp = new Sprite(Img->Test, 0, 0, 128, 64);
+            OtherSp->SetXY(100, 50);
+            OtherSp->SetZ(-200);
+
+            SolState = lua::Sol["Test"];
+            std::string res = lua::Sol["Test"]["new"](SolState, mSpr);
+            std::cout << res;
+            
         }
 
-        void Test::Update()
+        void Test::update()
         {
-            Sprite::Image(Sp, Img->Chicken, 0, 0, 32, 32);
-            lua_getglobal(Lua, "LuacallTest");
-            lua_pushnumber(Lua, Sp);
-            lua_pcall(Lua, 1, 1, 0);
-            std::string str = luaL_checkstring(Lua, -1);
-            printf(str.data());
-        }
+            std::string res = lua::Sol["Test"]["Update"](SolState);
+            std::cout << res;
 
-
-        void Test::CallUpdate(int hSp)
-        {
-            std::any_cast<Test*>(Sprite::GetBelong(hSp))->Update();
+            
+            Actor::update();
         }
-        void Test::CallDestructer(int hSp)
-        {
-            delete std::any_cast<Test*>(Sprite::GetBelong(hSp));
-        }
-
     }
 
 
@@ -323,43 +297,31 @@ namespace game
     // BackGround
     namespace main
     {
-        BackGround* BackGround::GetIn = nullptr;
+        BackGround* BackGround::Sole = nullptr;
 
 
         // îwåi
-        BackGround::BackGround()
+        BackGround::BackGround() : Actor()
         {
             Image = DxLib::MakeScreen(ROUGH_WIDTH, ROUGH_HEIGHT, TRUE);
-            Sp = Sprite::Make(Image, 0, 0, ROUGH_WIDTH, ROUGH_HEIGHT);
+            mSpr->SetImage(Graph(Image), 0, 0, ROUGH_WIDTH, ROUGH_HEIGHT);
             DxLib::SetDrawScreen(Image);
             
             for (int x = 0; x < ROUGH_WIDTH; x+=32)
             {
                 for (int y = 0; y < ROUGH_HEIGHT; y+=32)
                 {
-                    DxLib::DrawGraph(x, y, Img->Tile32, TRUE);
+                    DxLib::DrawGraph(x, y, Img->Tile32.getHandler(), TRUE);
                 }
             }
 
-            Sprite::Offset(Sp, int(0), int(0), 4000);
-            Sprite::Belong(Sp, this);
-            Sprite::Update(Sp, BackGround::CallUpdate);
-            Sprite::Destructer(Sp, BackGround::CallDestructer);
-            BackGround::GetIn = this;
+            mSpr->SetZ(4000);
+            BackGround::Sole = this;
 
         }
-        void BackGround::Update()
+        void BackGround::update()
         {
-        }
-
-
-        void BackGround::CallUpdate(int hSp)
-        {
-            std::any_cast<BackGround*>(Sprite::GetBelong(hSp))->Update();
-        }
-        void BackGround::CallDestructer(int hSp)
-        {
-            delete std::any_cast<BackGround*>(Sprite::GetBelong(hSp));
+            Actor::update();
         }
 
     }
@@ -379,7 +341,7 @@ namespace game
             Sprite::Offset(Sp, X, Y);
             Sprite::Belong(Sp, this);
             Sprite::Update(Sp, Templa::CallUpdate);
-            Sprite::Destructer(Sp, Templa::CallDestructer);
+            Sprite::destructor(Sp, Templa::Calldestructor);
         }
 
         void Templa::Update()
@@ -393,7 +355,7 @@ namespace game
         {
             std::any_cast<Templa*>(Sprite::GetBelong(hSp))->Update();
         }
-        void Templa::CallDestructer(int hSp)
+        void Templa::Calldestructor(int hSp)
         {
             delete std::any_cast<Templa*>(Sprite::GetBelong(hSp));
         }
@@ -410,7 +372,7 @@ namespace game
             Sprite::Belong(Sp, this);
             Sprite::Update(Sp, Templa::CallUpdate);
             Sprite::Drawing(Sp, Templa::CallDrawing);
-            Sprite::Destructer(Sp, Templa::CallDestructer);
+            Sprite::destructor(Sp, Templa::Calldestructor);
         }
 
         void Templa::Update()
@@ -432,7 +394,7 @@ namespace game
         {
             std::any_cast<Templa*>(Sprite::GetBelong(hSp))->Drawing(hX, hY);
         }
-        void Templa::CallDestructer(int hSp)
+        void Templa::Calldestructor(int hSp)
         {
             delete std::any_cast<Templa*>(Sprite::GetBelong(hSp));
         }
@@ -450,7 +412,7 @@ namespace game
             Sprite::Offset(Sp, X, Y);
             Sprite::Belong(Sp, this);
             Sprite::Update(Sp, Templa::CallUpdate);
-            Sprite::Destructer(Sp, Templa::CallDestructer);
+            Sprite::destructor(Sp, Templa::Calldestructor);
         }
 
         void Templa::Update()
@@ -464,7 +426,7 @@ namespace game
         {
             std::any_cast<Templa*>(Sprite::GetBelong(hSp))->Update();
         }
-        void Templa::CallDestructer(int hSp)
+        void Templa::Calldestructor(int hSp)
         {
             delete std::any_cast<Templa*>(Sprite::GetBelong(hSp));
         }
@@ -503,25 +465,6 @@ namespace game
 
 
 
-
-
-namespace useful
-{
-    Random::Random() : engine(device()), distribution(0, INT_MAX - 1)
-    {
-    }
-    Random::Random(int seed) : engine(seed), distribution(0, INT_MAX - 1)
-    {
-    }
-    int Random::Get(int max)
-    {
-        return distribution(engine) % max;
-    }
-    int Random::Get(int min, int max)
-    {
-        return min + (distribution(engine) % (max - min));
-    }
-}
 
 
 

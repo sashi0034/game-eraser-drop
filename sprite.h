@@ -1,119 +1,101 @@
 #pragma once
 #include <utility>
-#include <DxLib.h>
 #include <any>
+#include <vector>
+#include "DxLib.h"
+#include "game_utils.h"
 
+using namespace gameUtils;
 
 class Sprite
 {
     static const int ROUGH_SCALE = 3;
-    static const int SPRITE_MAX = 4096;
-    static const int ANIM_MAX = 8;
-    static int anim1step[];
-    static int nextIndex;
 
-    static Sprite* sprites[];
-    static std::pair<int, short> sprites_Z[];
-
+    static std::vector<Sprite*> sprites;
 
     bool isUsed = false;
     double x = 0;
     double y = 0;
-    int image = -1;
+    double z = 0;
+    Graph image = Graph::NONE;
     int u = 0;
     int v = 0;
     int width = 0;
     int height = 0;
-    bool isReverse = false;
+    bool isFlip = false;
     bool isProtect = false;
-    int link = -1;
+    const Sprite* linkXY = nullptr;
     double rotationRad = 0;
-
     int blendMode = DX_BLENDMODE_ALPHA;
     int blendPal = 255;
-
-
     std::any belong = nullptr;
 
-    void (*updateMethod)(int hSP) = nullptr;
-    void (*destructerMethod)(int hSp) = nullptr;
-    void (*drawingMethod)(int hSp, int hX, int hY);
+    void (*updateMethod)(Sprite* hSP) = nullptr;
+    void (*destructorMethod)(Sprite* hSp) = nullptr;
+    void (*drawingMethod)(Sprite* hSp, int hX, int hY);
 
-
-    Sprite();
-
-
+    static int findIndex(Sprite* spr);
+    static void garbageCollect();
 public:
-
-    static const int ANIMTYPE_XY = 1;
-    static const int ANIMTYPE_UV = 2;
-    static const int ANIMTYPE_BLENDMODE = 3;
-    static const int ANIMTYPE_BLENDPAL = 4;
-    static const int ANIMTYPE_ROTATIONDEG = 5;
+    Sprite();
+    Sprite(Graph image);
+    Sprite(Graph image, int u, int v, int w, int h);
 
     static void Init();
     static void End();
 
-    static int Make();
-    static int Make(int image);
-    static int Make(int image, int u, int v, int width, int height);
+    void SetFlip(bool isFlip);
 
-    static void Reverse(int sp, bool isReverse);
+    void SetImage(Graph image);
+    void SetImage(int u, int v);
+    void SetImage(int u, int v, int width, int height);
+    void SetImage(Graph image, int u, int v, int width, int height);
 
-    static void Image(int sp, int image);
-    static void Image(int sp, int u, int v);
-    static void Image(int sp, int u, int v, int width, int height);
-    static void Image(int sp, int image, int u, int v, int width, int height);
-
-    static void Offset(int sp, double x, double y);
-    static void Offset(int sp, double x, double y, short z);
-    static void Offset(int sp, short z);
+    void SetXY(double x, double y);
+    void SetZ(double z);
+    double GetZ();
 
 
-    static void GetScreenXY(int sp, int* x, int* y);
+    void GetScreenXY(int* x, int* y);
 
-    static void RotationDeg(int sp, double deg);
-    static void RotationRad(int sp, double rad);
+    void SetRotationDeg(double deg);
+    void SetRotationRad(double rad);
+
+    void SetBelong(std::any instance);
+    std::any GetBelong();
+
+    void SetLinkXY(const Sprite* linkSpr);
+
+    void GetLinkDifferenceXY(double* x, double* y);
+
+    void SetBlend(int blendMode, int blendPal);
+    void SetBlendMode(int blendMode);
+    void SetBlendPal(int blendPal);
+
+    void SetUpdateMethod(void (*updateMethod)(Sprite* hSp));
+    void SetDrawingMethod(void (*drawingMethod)(Sprite* hSp, int hX, int hY));
+    void SetDestructorMethod(void (*destructorMethod)(Sprite* hSp));
+
+    void SetProtect(bool isProtect);
+
+    static void Dispose(Sprite* spr);
+    static void Dispose(Sprite* spr, bool isProtectOnly);
+
+    static void DisposeAll();
+    static void DisposeAll(bool isProtectOnly);
 
 
-    static void Belong(int sp, std::any instance);
-    static std::any GetBelong(int sp);
-
-    static void Link(int sp, int link);
-
-    static double GetLinkDifference_X(int sp);
-    static double GetLinkDifference_Y(int sp);
-
-    static void Blend(int sp, int blendMode, int blendPal);
-    static void BlendMode(int sp, int blendMode);
-    static void BlendPal(int sp, int blendPal);
-
-    static void Update(int sp, void (*updateMethod)(int hSp));
-    static void Drawing(int sp, void (*drawingMethod)(int hSp, int hX, int hY));
-    static void Destructer(int sp, void (*destructerMethod)(int hSp));
-
-    static void Clear(int sp);
-    static void Clear(int sp, bool protectOnly);
-
-    static void AllClear();
-    static void AllClear(bool protectOnly);
-
-    static void Protect(int sp, bool isProtect);
-
-    static void AllUpdate();
-    static void AllDrawing();
-
-    static double GetUsingRate();
+    static void UpdateAll();
+    static void DrawingAll();
 
 
     class DrawingProcess
     {
-        static int a;
     public:
-        static void Rough(int hSp, int hX, int hY);
-        static void Twice(int hSp, int hX, int hY);
-        static void DotByDot(int hSp, int hX, int hY);
-        static void Draw(int sp, int x, int y, int scale);
+        static void Rough(Sprite* hSpr, int hX, int hY);
+        static void Twice(Sprite* hSpr, int hX, int hY);
+        static void DotByDot(Sprite* hSpr, int hX, int hY);
+        static void Draw(Sprite* hSpr, int x, int y, int scale);
     };
 
 

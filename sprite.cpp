@@ -3,321 +3,281 @@
 #include "sprite.h"
 #include <math.h>
 #include <random>
+#include <iostream>
 
 
 
-Sprite::Sprite()
-{
-    drawingMethod = Sprite::DrawingProcess::Rough;
 
-}
-
-int Sprite::nextIndex = 0;
-int Sprite::anim1step[Sprite::ANIM_MAX];
-Sprite* Sprite::sprites[Sprite::SPRITE_MAX];
-std::pair<int, short> Sprite::sprites_Z[Sprite::SPRITE_MAX];
-
+std::vector<Sprite*> Sprite::sprites = std::vector<Sprite*>();
 
 void Sprite::Init()
 {
-    for (int i = 0; i < SPRITE_MAX; i++)
-    {
-        Sprite::sprites[i] = new Sprite();
-        Sprite::sprites_Z[i] = std::make_pair(i, 0);
-    }
-
-    nextIndex = 0;
-    anim1step[ANIMTYPE_XY] = 3;
-    anim1step[ANIMTYPE_UV] = 3;
-    anim1step[ANIMTYPE_BLENDMODE] = 2;
-    anim1step[ANIMTYPE_BLENDPAL] = 2;
-    anim1step[ANIMTYPE_ROTATIONDEG] = 2;
+    sprites = std::vector<Sprite*>();
 }
 
 
 void Sprite::End()
 {
-
-    Sprite::AllClear();
-    for (int i = 0; i < SPRITE_MAX; i++)
-    {
-        delete sprites[i];
-    }
+    Sprite::DisposeAll();
 }
 
 
-int Sprite::Make()
-{
-    return Make(-1, 0, 0, 0, 0);
-}
-int Sprite::Make(int image)
+Sprite::Sprite() : Sprite(Graph::NONE, 0, 0, 0, 0)
+{}
+Sprite::Sprite(Graph image) : Sprite(image, 0, 0, 0, 0)
 {
     int x = 0, y = 0;
-    DxLib::GetGraphSize(image, &x, &y);
-    return Make(image, 0, 0, x, y);
+    DxLib::GetGraphSize(image.getHandler(), &x, &y);
+    this->width = x;
+    this->height = y;
 }
-int Sprite::Make(int image, int u, int v, int width, int height)
+Sprite::Sprite(Graph image, int u, int v, int w, int h)
 {
-    for (int i = 0; i < SPRITE_MAX; i++)
+    this->image = image;
+    this->u = u;
+    this->v = v;
+    this->width = w;
+    this->height = h;
+    this->drawingMethod = Sprite::DrawingProcess::Rough;
+
+    sprites.push_back(this);
+}
+
+
+
+void Sprite::SetFlip(bool isFlip)
+{
+    this->isFlip = isFlip;
+}
+
+
+void Sprite::SetImage(Graph image)
+{
+    this->image = image;
+}
+void Sprite::SetImage(int u, int v)
+{
+    this->u = u;
+    this->v = v;
+}
+void Sprite::SetImage(int u, int v, int width, int height)
+{
+    this->SetImage(u, v);
+    this->width = width;
+    this->height = height;
+}
+void Sprite::SetImage(Graph image, int u, int v, int width, int height)
+{ 
+    this->SetImage(image);
+    this->SetImage(u, v, width, height);
+}
+
+
+void Sprite::SetXY(double x, double y)
+{
+    this->x = x;
+    this->y = y;
+}
+void Sprite::SetZ(double z)
+{
+    this->z = z;
+}
+double Sprite::GetZ()
+{
+    return this->z;
+}
+
+
+void Sprite::GetScreenXY(int* x, int* y)
+{
+    double x1, y1;
+    this->GetLinkDifferenceXY(&x1, &y1);
+
+    *x = int(this->x + x1);
+    *y = int(this->y + y1);
+}
+
+
+void Sprite::SetRotationDeg(double deg)
+{
+    this->rotationRad = (deg / 180.0) * M_PI;
+}
+void Sprite::SetRotationRad(double rad)
+{
+    this->rotationRad = rad;
+}
+
+
+void Sprite::SetBelong(std::any instance)
+{
+    this->belong = instance;
+}
+
+std::any Sprite::GetBelong()
+{
+    return this->belong;
+}
+
+void Sprite::SetLinkXY(const Sprite* linkSpr)
+{
+    this->linkXY = linkSpr;
+}
+
+
+void Sprite::GetLinkDifferenceXY(double* x, double* y)
+{
+    const Sprite* linkSpr = this->linkXY;
+    if (linkSpr != nullptr)
     {
-        int sp = (nextIndex + i) % SPRITE_MAX;
-
-        if (!sprites[sp]->isUsed)
-        {// 未使用なら割り当て
-            delete sprites[sp];
-
-            sprites[sp] = new Sprite();
-            sprites_Z[sp] = std::make_pair(sp, 0);
-
-            Sprite* spr = sprites[sp];
-            spr->isUsed = true;
-            spr->image = image; // image = -1 の場合は画像を表示しない
-            spr->u = u;
-            spr->v = v;
-            spr->width = width;
-            spr->height = height;
-
-            nextIndex = sp + 1;
-
-            return sp;
-        }
-    }
-    return -1;
-}
-
-void Sprite::Reverse(int sp, bool isReverse)
-{
-    sprites[sp]->isReverse = isReverse;
-}
-
-
-void Sprite::Image(int sp, int image)
-{
-    Sprite* spr = sprites[sp];
-    spr->image = image;
-}
-void Sprite::Image(int sp, int u, int v)
-{
-    Sprite* spr = sprites[sp];
-    spr->u = u;
-    spr->v = v;
-}
-void Sprite::Image(int sp, int u, int v, int width, int height)
-{
-    Image(sp, u, v);
-    Sprite* spr = sprites[sp];
-    spr->width = width;
-    spr->height = height;
-}
-void Sprite::Image(int sp, int image, int u, int v, int width, int height)
-{
-    Image(sp, image);
-    Image(sp, u, v, width, height);
-}
-
-
-void Sprite::Offset(int sp, double x, double y)
-{
-    Sprite* spr = sprites[sp];
-    spr->x = x;
-    spr->y = y;
-}
-void Sprite::Offset(int sp, double x, double y, short z)
-{
-    Offset(sp, x, y);
-    Offset(sp, z);
-}
-void Sprite::Offset(int sp, short z)
-{
-    sprites_Z[sp] = std::make_pair(sp, z);
-}
-
-
-void Sprite::GetScreenXY(int sp, int* x, int* y)
-{
-    Sprite* spr = sprites[sp];
-    *x = int(spr->x + GetLinkDifference_X(sp));
-    *y = int(spr->y + GetLinkDifference_Y(sp));
-}
-
-
-void Sprite::RotationDeg(int sp, double deg)
-{
-    Sprite* spr = sprites[sp];
-    spr->rotationRad = (deg / 180.0) * M_PI;
-}
-void Sprite::RotationRad(int sp, double rad)
-{
-    Sprite* spr = sprites[sp];
-    spr->rotationRad = rad;
-}
-
-
-void Sprite::Belong(int sp, std::any instance)
-{
-    sprites[sp]->belong = instance;
-}
-
-std::any Sprite::GetBelong(int sp)
-{
-    return sprites[sp]->belong;
-}
-
-void Sprite::Link(int sp, int link)
-{
-    sprites[sp]->link = link;
-}
-
-
-double Sprite::GetLinkDifference_X(int sp)
-{
-    Sprite* spr = sprites[sp];
-    int link = spr->link;
-    if (link != -1)
-    {
-        return sprites[link]->x + GetLinkDifference_X(link);
+        double x1, y1;
+        Sprite::GetLinkDifferenceXY(&x1, &y1);
+        *x = linkSpr->x + x1;
+        *y = linkSpr->y + y1;
+        return;
     }
     else
     {
-        return 0;
-    }
-}
-
-double Sprite::GetLinkDifference_Y(int sp)
-{
-    Sprite* spr = sprites[sp];
-    int link = spr->link;
-    if (link != -1)
-    {
-        return sprites[link]->y + GetLinkDifference_Y(link);
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-void Sprite::Blend(int sp, int blendMode, int blendPal)
-{
-    BlendMode(sp, blendMode);
-    BlendPal(sp, blendPal);
-}
-void Sprite::BlendMode(int sp, int blendMode)
-{
-    sprites[sp]->blendMode = blendMode;
-}
-void Sprite::BlendPal(int sp, int blendPal)
-{
-    sprites[sp]->blendPal = blendPal;
-}
-
-
-void Sprite::Update(int sp, void (*updateMethod)(int hSp))
-{
-    sprites[sp]->updateMethod = updateMethod;
-}
-void Sprite::Drawing(int sp, void (*drawingMethod)(int hSp, int hX, int hY))
-{
-    sprites[sp]->drawingMethod = drawingMethod;
-}
-void Sprite::Destructer(int sp, void (*destructerMethod)(int hSp))
-{
-    sprites[sp]->destructerMethod = destructerMethod;
-}
-
-void Sprite::Clear(int sp)
-{
-    Sprite* spr = sprites[sp];
-    if (spr->isUsed)
-    {
-        if (spr->destructerMethod != nullptr)
-        {
-            //printf("delted %d\n", sp);
-            spr->destructerMethod(sp);
-        }
-        spr->isUsed = false;
-    }
-    else
-    {
+        *x = 0;
+        *y = 0;
         return;
     }
 }
-void Sprite::Clear(int sp, bool unprotectOnly)
+
+
+void Sprite::SetBlend(int blendMode, int blendPal)
 {
-    Sprite* spr = sprites[sp];
-    if (unprotectOnly)
+    this->SetBlendMode(blendMode);
+    this->SetBlendPal(blendPal);
+}
+void Sprite::SetBlendMode(int blendMode)
+{
+    this->blendMode = blendMode;
+}
+void Sprite::SetBlendPal(int blendPal)
+{
+    this->blendPal = blendPal;
+}
+
+
+void Sprite::SetUpdateMethod(void (*updateMethod)(Sprite* hSp))
+{
+    this->updateMethod = updateMethod;
+}
+void Sprite::SetDrawingMethod(void (*drawingMethod)(Sprite* hSp, int hX, int hY))
+{
+    this->drawingMethod = drawingMethod;
+}
+void Sprite::SetDestructorMethod(void (*destructorMethod)(Sprite* hSp))
+{
+    this->destructorMethod = destructorMethod;
+}
+
+
+void Sprite::SetProtect(bool isProtect)
+{
+    this->isProtect = isProtect;
+}
+
+void Sprite::Dispose(Sprite* spr)
+{
+    if (spr == nullptr) return;
+    if (spr->destructorMethod != nullptr)
     {
-        if (!spr->isProtect) spr->Clear(sp);
+        spr->destructorMethod(spr);
+    }
+
+    spr->sprites[findIndex(spr)] = nullptr;
+}
+
+
+void Sprite::Dispose(Sprite* spr, bool isUnprotectOnly)
+{
+    if (isUnprotectOnly)
+    {
+        if (!spr->isProtect) Dispose(spr);
     }
     else
     {
-        spr->Clear(sp);
+        Dispose(spr);
     }
 }
 
-void Sprite::AllClear()
+void Sprite::DisposeAll()
 {
-    AllClear(false);
+    DisposeAll(false);
 }
-void Sprite::AllClear(bool protectOnly)
+void Sprite::DisposeAll(bool isProtectOnly)
 {
-    for (int i = 0; i < SPRITE_MAX; i++)
+    for (Sprite* spr : sprites)
     {
-        Sprite* spr = sprites[i];
-        if (protectOnly)
+        if (isProtectOnly)
         {
-            if (!spr->isProtect) Clear(i);
+            if (!spr->isProtect) Dispose(spr);
         }
         else
         {
-            Clear(i);
+            Dispose(spr);
         }
+    }
+    garbageCollect();
+}
+
+int Sprite::findIndex(Sprite* spr)
+{
+    auto size = sprites.size();
+    if (size == 0) return -1;
+
+    auto iter = std::find(sprites.begin(), sprites.end(), spr);
+    size_t index = std::distance(sprites.begin(), iter);
+    if (index == size)
+    {
+        return -1;
+    }
+    return index;
+}
+void Sprite::garbageCollect()
+{
+    while (true)
+    {
+        int index = findIndex(nullptr);
+        if (index == -1) break;
+        sprites.erase(sprites.begin() + index);
     }
 }
 
-void Sprite::Protect(int sp, bool isProtect)
+
+
+
+void Sprite::UpdateAll()
 {
-    sprites[sp]->isProtect = isProtect;
-}
-
-
-
-void Sprite::AllUpdate()
-{
-    for (int i = 0; i < SPRITE_MAX; i++)
+    for (Sprite* spr : sprites)
     {
-        Sprite* spr = sprites[i];
-        if (spr->isUsed)
+        if (spr != nullptr)
         {
-            if (spr->updateMethod != nullptr) spr->updateMethod(i);
+            if (spr->updateMethod != nullptr) spr->updateMethod(spr);
         }
     }
-    //AnimationAllUpdate();
+    garbageCollect();
 }
 
 
-void Sprite::AllDrawing()
+void Sprite::DrawingAll()
 {
+    std::sort(sprites.begin(), sprites.end(),
+        [](Sprite* left, Sprite* right) { return left->GetZ() > right->GetZ(); });
 
-    // (修正)後でヒープに移動させる
-    static std::pair<int, short> ol[SPRITE_MAX];
-    memcpy(ol, sprites_Z, sizeof(sprites_Z[0]) * SPRITE_MAX);
-
-    std::sort(&ol[0], &ol[0] + sizeof(ol) / sizeof(ol[0]),
-        [](auto& left, auto& right) { return left.second > right.second; });
-
-    for (int i = 0; i < SPRITE_MAX; i++)
+    for (Sprite* spr : sprites)
     {
-        int sp = ol[i].first;
-        Sprite* spr = sprites[sp];
-        if (spr->isUsed)
+        if (spr != nullptr)
         {
-
-            if (spr->image == -1) continue;
+            if (spr->image == Graph::NONE) continue;
 
             int x, y;
-            x = int(spr->x + GetLinkDifference_X(sp));
-            y = int(spr->y + GetLinkDifference_Y(sp));
+            double x1, y1;
+            spr->GetLinkDifferenceXY(&x1, &y1);
+
+            x = int(spr->x + x1);
+            y = int(spr->y + y1);
 
             x *= ROUGH_SCALE;
             y *= ROUGH_SCALE;
@@ -325,7 +285,7 @@ void Sprite::AllDrawing()
 
             if (spr->drawingMethod != nullptr)
             {
-                spr->drawingMethod(sp, x, y);
+                spr->drawingMethod(spr, x, y);
             }
         }
     }
@@ -333,44 +293,33 @@ void Sprite::AllDrawing()
 
 }
 
-double Sprite::GetUsingRate()
+
+
+
+void Sprite::DrawingProcess::Rough(Sprite* hSpr, int hX, int hY)
 {
-    int use = 0;
-    for (int i = 0; i < SPRITE_MAX; i++)
+    Draw(hSpr, hX, hY, ROUGH_SCALE);
+}
+void Sprite::DrawingProcess::Twice(Sprite* hSpr, int hX, int hY)
+{
+    Draw(hSpr, hX, hY, 2);
+}
+void Sprite::DrawingProcess::DotByDot(Sprite* hSpr, int hX, int hY)
+{
+    Draw(hSpr, hX, hY, 1);
+}
+void Sprite::DrawingProcess::Draw(Sprite* hSpr, int x, int y, int scale)
+{
+    int image = DxLib::DerivationGraph(hSpr->u, hSpr->v, hSpr->width, hSpr->height, hSpr->image.getHandler());
+
+    if (hSpr->rotationRad == 0)
     {
-        if (sprites[i]->isUsed) use++;
-    }
-    return ((double)use) / SPRITE_MAX;
-}
-
-
-
-
-void Sprite::DrawingProcess::Rough(int hSp, int hX, int hY)
-{
-    Draw(hSp, hX, hY, ROUGH_SCALE);
-}
-void Sprite::DrawingProcess::Twice(int hSp, int hX, int hY)
-{
-    Draw(hSp, hX, hY, 2);
-}
-void Sprite::DrawingProcess::DotByDot(int hSp, int hX, int hY)
-{
-    Draw(hSp, hX, hY, 1);
-}
-void Sprite::DrawingProcess::Draw(int sp, int x, int y, int scale)
-{
-    Sprite* spr = sprites[sp];
-    int image = DxLib::DerivationGraph(spr->u, spr->v, spr->width, spr->height, spr->image);
-
-    if (spr->rotationRad == 0)
-    {
-        DxLib::DrawRotaGraph3(x, y, 0, 0, scale, scale, 0, image, 1, spr->isReverse);
+        DxLib::DrawRotaGraph3(x, y, 0, 0, scale, scale, 0, image, 1, hSpr->isFlip);
     }
     else
     {
-        int x1 = spr->width / 2, y1 = spr->height / 2;
-        double cos = std::cos(spr->rotationRad), sin = std::sin(spr->rotationRad);
+        int x1 = hSpr->width / 2, y1 = hSpr->height / 2;
+        double cos = std::cos(hSpr->rotationRad), sin = std::sin(hSpr->rotationRad);
 
         double x2 = x1 * cos - y1 * sin, y2 = x1 * sin + y1 * cos;
 
@@ -379,8 +328,8 @@ void Sprite::DrawingProcess::Draw(int sp, int x, int y, int scale)
         DxLib::DrawRotaGraph3(x + int(dx * scale), y + int(dy * scale),
             0, 0, // 回転中心
             scale, scale,
-            spr->rotationRad, image,
-            1, spr->isReverse);
+            hSpr->rotationRad, image,
+            1, hSpr->isFlip);
     }
     DxLib::DeleteGraph(image);
 }
