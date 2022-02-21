@@ -14,6 +14,8 @@
 #include "game_utils.h"
 #include "game_engine.h"
 
+#include "luas.h"
+
 #define DEBUG
 
 #ifdef DEBUG
@@ -56,31 +58,6 @@ namespace game
     }
 
 
-    namespace lua
-    {
-        sol::state Sol;
-
-        int SolStart();
-        void DefineSpriteFunc();
-        
-        class LuaDebugManager
-        {
-            bool mHasLastWriteTime = false;
-            SYSTEMTIME mLastWriteTime;
-
-        public:
-            LuaDebugManager();
-
-            Sprite* Spr;
-            int Count = 0;
-
-            void Update();
-
-            static void CallUpdate(Sprite* hSpr);
-            static void Calldestructor(Sprite* hSpr);
-        };
-
-    }
 
 }
 
@@ -95,7 +72,6 @@ namespace game{
     useful::Random* Rand = new useful::Random();
 
     int GameState;
-    bool CanRestartProgram = false;
 
     resorce::Image* Img;
 

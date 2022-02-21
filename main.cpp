@@ -1,7 +1,7 @@
 #include "main.h"
 #include <iostream>
 
-#define LOOP    (DxLib::ProcessMessage() != -1 && (!CanRestartProgram))
+#define LOOP    (DxLib::ProcessMessage() != -1 && (!luas::CanRestartProgram))
 
 
 
@@ -57,16 +57,16 @@ namespace game
 
     restart:
         
-        if (lua::SolStart()==-1) return -1;
+        if (luas::SolStart()==-1) return -1;
 
         printf("game is start\n");
 
         //シーン
         SceneTransition();
 
-        if (CanRestartProgram)
+        if (luas::CanRestartProgram)
         {// 再起動
-            CanRestartProgram = false;
+            luas::CanRestartProgram = false;
             Sprite::DisposeAll();
             printfDx("再起動完了\n");
             goto restart;
@@ -105,111 +105,6 @@ namespace game
         DxLib::ScreenFlip();
     }
 }
-
-
-namespace game
-{
-    namespace lua
-    {
-        int SolStart()
-        {
-            // Lua読み込み
-            /*Lua = luaL_newstate();
-            luaL_openlibs(Lua);
-            if (luaL_dofile(Lua, "resorce.lua"))
-            {
-                OutputDebugString("Luaの読み込みに失敗しました");
-                return -1;
-            }
-            lua::DefineSpriteFunc();*/
-            Sol.open_libraries(sol::lib::base, sol::lib::package);
-            DefineSpriteFunc();
-
-            new lua::LuaDebugManager();
-            return 0;
-        }
-        void DefineSpriteFunc()
-        {
-
-            lua::Sol.new_usertype<Sprite>(
-                "Sprite",
-                sol::constructors<Sprite()>(),
-                "SetXY", &Sprite::SetXY);
-
-            Sol.script_file("test.lua");
-        }
-    }
-
-
-    namespace lua
-    {
-        LuaDebugManager::LuaDebugManager()
-        {
-            Spr = new Sprite();
-            Spr->SetBelong(this);
-            Spr->SetUpdateMethod(LuaDebugManager::CallUpdate);
-            Spr->SetDestructorMethod(LuaDebugManager::Calldestructor);
-
-        }
-
-        void LuaDebugManager::Update()
-        {
-            WIN32_FIND_DATA findData;
-            FILETIME fileTime;
-            HANDLE hFile = FindFirstFile(R"(C:\Users\satos\source\repos\lua_test\resorce.lua)", &findData); // 絶対パスを指定
-
-            if (hFile == INVALID_HANDLE_VALUE)
-            {
-                printf("読み込み失敗\n");
-            }
-            else
-            {
-                FindClose(hFile);
-
-                // FindFirstFileにてUTCタイムスタンプを取得(100ナノ秒単位)
-                // FileTimeToLocalFileTimeにてUTCからローカル時間に変換
-                // FileTimeToSystemTimeにて100ナノ秒単位を年月日時分秒ミリ秒に変換
-                // 更新日時
-                SYSTEMTIME lastWriteTime;
-                FileTimeToLocalFileTime(&findData.ftLastWriteTime, &fileTime);
-                FileTimeToSystemTime(&fileTime, &lastWriteTime);
-                
-                if (!mHasLastWriteTime)
-                {// 初期化
-                    mLastWriteTime = lastWriteTime;
-                    mHasLastWriteTime = true;
-                }
-
-                if ((mLastWriteTime.wMilliseconds != lastWriteTime.wMilliseconds)
-                    || (mLastWriteTime.wSecond != lastWriteTime.wSecond))
-                {//　更新してたなら
-                    printf("プログラムの変更を確認しました。再起動します\n");
-                    CanRestartProgram = true;
-                    mLastWriteTime = lastWriteTime;
-                }
-                
-                
-            }
-
-
-        }
-
-
-        void LuaDebugManager::CallUpdate(Sprite* hSpr)
-        {
-            std::any_cast<LuaDebugManager*>(hSpr->GetBelong())->Update();
-        }
-        void LuaDebugManager::Calldestructor(Sprite* hSpr)
-        {
-            delete std::any_cast<LuaDebugManager*>(hSpr->GetBelong());
-        }
-
-
-    }
-}
-
-
-
 
 
 
@@ -274,15 +169,15 @@ namespace game
             OtherSp->SetXY(100, 50);
             OtherSp->SetZ(-200);
 
-            SolState = lua::Sol["Test"];
-            std::string res = lua::Sol["Test"]["new"](SolState, mSpr);
+            SolState = luas::Sol["Test"];
+            std::string res = luas::Sol["Test"]["new"](SolState, mSpr);
             std::cout << res;
             
         }
 
         void Test::update()
         {
-            std::string res = lua::Sol["Test"]["Update"](SolState);
+            std::string res = luas::Sol["Test"]["update"](SolState);
             std::cout << res;
 
             
